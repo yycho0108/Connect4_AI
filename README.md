@@ -57,3 +57,5 @@ It is quite apparent that the minimax agent performs much better than the Q-net 
 The Q-net agent performs slightly better than the random agent, but not by an impressive amount.
 
 ![minimax-supervised-neural](images/minimax_supervised-neural.png)
+I also attempted (knowing that the chances of it working is scarce)
+to implement a **supervised** q-learning agent, which didn't work at all, as expected.
