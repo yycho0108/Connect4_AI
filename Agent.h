@@ -31,7 +31,7 @@ class Agent{
 	using Memory = _Memory<n,m>;
 
 	std::deque<Memory> memories;
-	Net<n*m, m> net; //input = board-space, output = q value for next actions
+	Net<n*m, n*m/2, m> net; //input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 

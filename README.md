@@ -40,3 +40,11 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 		- n/m : Board Size
 		- mSize : Agent Memory Size
 		- rSize : Agent Replay Size
+
+### Results
+
+![Comparison](images/comparison.png)
+
+1 corresponds to minimax agent winning;
+-1 corresponds to Q-net agent winning.
+It is quite apparent that the minimax agent performs much better than the Q-net agent.
