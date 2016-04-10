@@ -2,26 +2,50 @@
 #include "Board.h"
 #include "Agent.h"
 
-int main(){
-	using Board = _Board<3,3>;
-	Board board;
-	Agent<3,3> ai;
+int main(int argc, char* argv[]){
+
 	int n = 1;
+	if(argc != 1){
+		n = std::atoi(argv[1]);
+	}
+
+	using Board = _Board<4,5>;
+	Board board;
+	Agent<4,5> ai(1000,0.8);//memory size, gamma
 
 	for(int i=0;i<n;++i){
 		namedPrint(i);
 		board = Board();
 		do{
-			board.print();
-			auto a = ai.getNext(board,0.05);
+			double eps = 1.0 - tanh(2*float(i)/n);
+			auto a = ai.getNext(board,eps);
 			auto prev = board; //copy to prev
 			board.step(a);
-			//maybe there's a better way of doing this?
-			ai.memorize(prev,a,board.reward(),board);
-			ai.learn(5, 0.05); //5 = max of n_replay
+			
+			ai.memorize(prev,a,-board.reward(),board);
+			//raw reward is the reward for the "next" player.
+			//negate the reward, since reward should correspond to the previous state's action.
+			//it works, since it's a zero-sum game.
+			
+			ai.learn(20, 0.40); //5 = max of n_replay; 0.05 = learning rate
 
 		} while(!board.end());
-		//game over
+		board.print();
 	}
+
+	//test
+	board = Board();
+	int i = 0;
+	do{
+		hline();
+		board.print();
+		auto a = ai.getNext(board,0.0);//no random exploration
+		namedPrint(a);
+		namedPrint(ai.guess(board));
+		if((++i&1) == 0) //get user input
+			std::cin >> a;
+		board.step(a);
+
+	} while (!board.end());
 
 }

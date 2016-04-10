@@ -8,8 +8,8 @@
 #include "Utility.h"
 
 
-enum Turn:char{X=0,A,B}; //X = empty
-char cTurn[3] ={'X','A','B'};
+enum Turn:char{A=-1,X,B}; //X = 0 = empty
+char cTurn[3] ={'A','X','B'};
 
 template<int n, int m>
 struct _Board{
@@ -25,6 +25,8 @@ struct _Board{
 	_Board(){
 		turn = A;
 		memset(_board,0,sizeof(_board));
+
+		_win = X;
 		calcNext();
 		_reward = 0.0;
 	}
@@ -51,16 +53,15 @@ struct _Board{
 		return (char*)_next[a];
 	}
 	void step(int a){
-		assert(_open[a] == true);
-		namedPrint(a);
-		namedPrint(_next[a]);
+		//assert(_open[a] == true);
 		_board[_next[a]][a] = turn;
-		turn = (turn==A?B:A); //flip turn
 		calcWin(a); //a = prev action
+		
+		turn = (turn==A?B:A); //flip turn
 		calcNext();
 
-		if(_win == turn) //may have to negate
-			_reward = 1; //this is the previosu player's reward.
+		if(_win == turn)//this would actually never happen.
+			_reward = 1; //this is MY reward.
 		else if (_win == X)
 			_reward = 0; //draw
 		else
@@ -68,6 +69,7 @@ struct _Board{
 	}
 
 	bool end(){
+		//someone won or board is full
 		return _end;
 	}
 
@@ -79,8 +81,8 @@ struct _Board{
 	}
 
 	void calcNext(){
+		_end = true;
 		if(_win == X){ //no one won yet
-			_end = true;
 			for(int a=0; a<m; ++a){
 				_open[a] = false;
 				for(int i=n-1; i>=0; --i){//bottom-up
@@ -101,32 +103,46 @@ struct _Board{
 		int c_i = _next[a];
 		int c_j = a;
 		_win = X; //no one won
-		for(int di=-1;di<=1;++di){
-			for(int dj=-1;dj<=1;++dj){ //eight directions (though up is redundnat)
-				int ci = c_i;
-				int cj = c_j;
-				int cnt=0;
-				if(di || dj){
-					while(inbound(ci,cj) && _board[ci][cj] == turn){
-						ci += di;
-						cj += dj;
-						++cnt;
-					}
-					if(cnt >= 4){
-						_win = turn;
-						return;
-					}
-				}
-				
-			}
-		}
-		//not implemented
+		int dirs[4][2] = {{0,1},{1,0},{1,1},{1,-1}};
+		for(int i=0;i<4;++i){
+			auto di = dirs[i][0];
+			auto dj = dirs[i][1];
 
+			int cnt=0;
+
+			int ci = c_i;
+			int cj = c_j;
+
+			while(inbound(ci,cj) && _board[ci][cj] == turn){
+				ci -= di;
+				cj -= dj;
+				++cnt;
+			}
+			//back to center
+			ci = c_i;
+			cj = c_j;
+
+			while(inbound(ci,cj) && _board[ci][cj] == turn){
+				ci += di;
+				cj += dj;
+				++cnt;
+			}
+
+			--cnt;
+			//counts the middle part twice
+			
+			if(cnt >= 3){ //connect-3 game right now
+				_win = turn;
+				return;
+			}
+
+
+		}
 	}
 	void print(){
 		for(int i=0;i<n;++i){
 			for(int j=0;j<m;++j){
-				putchar(cTurn[(int)_board[i][j]]);
+				putchar(cTurn[(int)_board[i][j] + 1]);
 			}
 			putchar('\n');
 		}

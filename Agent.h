@@ -9,6 +9,9 @@
 
 //minimax Q-Learning
 //possibly SARSA
+float split(){
+	return rand()/float(RAND_MAX);
+}
 
 template<int n, int m>
 struct _Memory{
@@ -33,8 +36,8 @@ class Agent{
 	double gamma;
 
 public:
-	Agent()
-		:net(0.6,0.001){ //alpha, decay
+	Agent(int mSize=1, double gamma=0.8)
+		:net(0.6,0.001), mSize(mSize),gamma(gamma){ //alpha, decay
 			srand(time(0));
 	}
 
@@ -68,12 +71,15 @@ public:
 		auto x = std::vector<double>(mem.S.board(), mem.S.board()+n*m);
 
 		auto y = net.FF(x);
+		//namedPrint(y);
 		//auto y = table.FF(x);
 		auto a = mem.a;
 		auto r = mem.r;
 		auto maxqn = max(mem.S2);
 
 		y[a] = (1-alpha)*y[a] + alpha*(r+gamma*maxqn);
+
+		//namedPrint(y);
 		// ...
 		net.BP(y);
 	}
@@ -82,24 +88,25 @@ public:
 		//learn n
 		auto s = memories.size();	
 		for(int i=0;i<n_replay;++i){
-			auto split = float(rand())/RAND_MAX;
-			learn(memories[s*split], alpha);
+			learn(memories[s*split()], alpha);
 		}
 	}
 
 	int getRand(Board& board){
-		auto split = float(rand())/RAND_MAX;
 		const bool* open = board.open();
 		std::vector<int> av;
 		for(int a=0;a<m;++a){
 			if(open[a])
 				av.push_back(a);
 		}
-		return av.size()*split;
+
+		return av[av.size()*split()];
 	}
 	int getBest(Board& board){
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
+		//namedPrint(x);
 		auto y = net.FF(x);
+		//namedPrint(y);
 		const bool* open = board.open();
 
 		double maxVal = -99999;
@@ -114,8 +121,22 @@ public:
 		return maxAct;
 	}
 	int getNext(Board& board, double eps){
-		auto split = float(rand())/RAND_MAX;
-		return (split<eps)? getRand(board) : getBest(board);
+		return (split()<eps)? getRand(board) : getBest(board);
 	}
+	std::vector<double> guess(Board& board){
+		auto x = std::vector<double>(board.board(),board.board()+n*m);
+		return net.FF(x);
+	}
+};
+
+
+class MiniMaxAgent{
+private:
+	int depth;
+public:
+	MiniMaxAgent(int depth){
+
+	}
+
 };
 #endif
