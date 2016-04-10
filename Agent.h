@@ -182,4 +182,20 @@ public:
 
 };
 
+template<int n, int m>
+class RandomAgent{
+	using Board = _Board<n,m>;
+public:
+	RandomAgent(){}
+	int getBest(Board& board){
+		std::vector<int> v;
+		auto open = board.open();
+		for(int i=0;i<m;++i){
+			if(open[i])
+				v.push_back(i);
+		}
+		return v[v.size() * split()];
+	}
+};
+
 #endif

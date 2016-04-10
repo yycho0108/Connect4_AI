@@ -48,3 +48,10 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 1 corresponds to minimax agent winning;
 -1 corresponds to Q-net agent winning.
 It is quite apparent that the minimax agent performs much better than the Q-net agent.
+
+![Comparison2](images/comparison_2.png)
+
+
+1 corresponds to random agent winning;
+-1 corresponds to Q-net agent winning.
+The Q-net agent performs slightly better than the random agent, but not by an impressive amount.

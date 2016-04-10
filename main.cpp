@@ -45,6 +45,7 @@ int main(int argc, char* argv[]){
 	Board board;
 	Agent<4,5> ai(1000,0.8);//memory size, gamma
 	MiniMaxAgent<4,5> m_ai(5);
+	RandomAgent<4,5> r_ai;
 
 	Turn win[n];
 
@@ -65,7 +66,8 @@ int main(int argc, char* argv[]){
 				ai.learn(20, 0.05); //5 = max of n_replay; 0.05 = learning rate
 			}else{
 				//minimax _ai will play B
-				auto a = m_ai.getBest(board);
+				auto a = r_ai.getBest(board);
+				//auto a = m_ai.getBest(board);
 				board.step(a);
 			}
 			board.print();
