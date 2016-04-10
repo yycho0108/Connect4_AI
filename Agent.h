@@ -16,12 +16,16 @@ float split(){
 template<int n, int m>
 struct _Memory{
 	using Board = _Board<n,m>;
-	Board S;
+	char S[n][m];
 	int a;
 	int r;
-	Board S2;
+	char S2[n][m];
+	bool open[m]; //avaiable actions
 	_Memory(Board& S, int a, int r, Board& S2):
-		S(S),a(a),r(r),S2(S2){
+		a(a),r(r){
+			memcpy(this->S, S.board(), sizeof(this->S));
+			memcpy(this->S2, S2.board(), sizeof(this->S2));
+			memcpy(this->open, S2.open(), sizeof(this->open));
 	}
 };
 
@@ -31,13 +35,14 @@ class Agent{
 	using Memory = _Memory<n,m>;
 
 	std::deque<Memory> memories;
-	Net<n*m, m> net; //input = board-space, output = q value for next actions
+	Net<n*m, n*m*3, m> net; //input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.3,0.001), mSize(mSize),gamma(gamma){ //alpha, decay
+		:net(0.1,0.001), mSize(mSize),gamma(gamma){ 
+			//alpha(learning rate), decay
 			srand(time(0));
 	}
 
@@ -48,14 +53,15 @@ public:
 		}
 	}
 
-	double max(Board& next){
-		auto x = std::vector<double>(next.board(), next.board()+n*m);
+	double max(char* next, bool* open){
+		auto x = std::vector<double>(next, next+n*m);
 		auto y = net.FF(x);	// list of q values for actions taken @ state 'next'
 		//auto y = table.FF(x);
 		double maxVal = 0.0;
 
 		for(int a=0; a<m; ++a){
-			if(next._open[a]){ //can perform action
+			//iterate over all possible actions
+			if(open[a]){ //can perform action
 				maxVal = maxVal>y[a]?maxVal:y[a];
 			}
 		}
@@ -68,14 +74,14 @@ public:
 		//learn 1
 		
 		//input = current state
-		auto x = std::vector<double>(mem.S.board(), mem.S.board()+n*m);
+		auto x = std::vector<double>((char*)mem.S, (char*)mem.S+n*m);
 
 		auto y = net.FF(x);
 		//namedPrint(y);
 		//auto y = table.FF(x);
 		auto a = mem.a;
 		auto r = mem.r;
-		auto maxqn = max(mem.S2);
+		auto maxqn = max((char*)mem.S2, mem.open);
 
 		y[a] = (1-alpha)*y[a] + alpha*(r+gamma*maxqn);
 
@@ -106,7 +112,7 @@ public:
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
 		//namedPrint(x);
 		auto y = net.FF(x);
-		namedPrint(y);
+		//namedPrint(y);
 		const bool* open = board.open();
 
 		double maxVal = -99999;
