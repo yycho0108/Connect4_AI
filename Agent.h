@@ -106,8 +106,8 @@ public:
 		int maxAct = -1;
 
 		for(int a=0;a<m;++a){
-			if(open[a]){
-				maxVal = maxVal>y[a]?maxVal:y[a];
+			if(open[a] && y[a] > maxVal){
+				maxVal = y[a];
 				maxAct = a;
 			}
 		}
