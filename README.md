@@ -25,7 +25,7 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 - [ ] Implement Testing Logic
 	Either the agent should be exposed to interact with user input -- or some other form of AI to train against. Currently, it's essentially playing against itself.
 	- [x] Compete Against User
-	- [ ] Implement Heuristic MiniMax Agent
+	- [x] Implement Heuristic MiniMax Agent
 
 ### Documentation
 

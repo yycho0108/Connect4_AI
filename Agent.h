@@ -129,14 +129,57 @@ public:
 	}
 };
 
+struct AR{
+	int a; //action
+	double r; //reward
+};
 
+template<int n, int m>
 class MiniMaxAgent{
+	using Board = _Board<n,m>;
 private:
 	int depth;
 public:
-	MiniMaxAgent(int depth){
+	MiniMaxAgent(int depth)
+		:depth(depth){
 
+	}
+	AR getBest(Board& board, int d, Turn turn){
+		auto maximize = (turn == board.turn);
+		AR res = {-1,0};
+		if(d == 0 || board.end()){
+			res.r = maximize? board.reward() : -board.reward();
+		}
+		else{
+			res.r = maximize? -99999 : 99999;
+			for(int a=0;a<m;++a){
+				if(board._open[a]){
+					Board b(board,a);
+					auto ar = getBest(b, d-1, turn); //may have to negate here
+					ar.r *= 0.8;//temporal reduction in reward
+
+					if(maximize){
+						if(ar.r>res.r){
+							res.r = ar.r;
+							res.a = a;
+						}
+					}
+					else{
+						if(ar.r<res.r){
+							res.r = ar.r;
+							res.a = a;
+						}
+					}
+				}
+			}
+
+		}
+		return res;
+	}
+	int getBest(Board& board){ //outputs best action, given current board state		
+		return getBest(board,depth,board.turn).a;
 	}
 
 };
+
 #endif
