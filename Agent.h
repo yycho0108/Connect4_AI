@@ -31,13 +31,13 @@ class Agent{
 	using Memory = _Memory<n,m>;
 
 	std::deque<Memory> memories;
-	Net<n*m, n*m/2, m> net; //input = board-space, output = q value for next actions
+	Net<n*m, m> net; //input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.6,0.001), mSize(mSize),gamma(gamma){ //alpha, decay
+		:net(0.3,0.001), mSize(mSize),gamma(gamma){ //alpha, decay
 			srand(time(0));
 	}
 
@@ -106,7 +106,7 @@ public:
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
 		//namedPrint(x);
 		auto y = net.FF(x);
-		//namedPrint(y);
+		namedPrint(y);
 		const bool* open = board.open();
 
 		double maxVal = -99999;
@@ -126,6 +126,17 @@ public:
 	std::vector<double> guess(Board& board){
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
 		return net.FF(x);
+	}
+	void s_learn(Board& board, int action){// supervised learning
+		auto x = std::vector<double>(board.board(), board.board()+n*m);
+		auto y = net.FF(x);
+		namedPrint(y);
+		for(int i=0;i<y.size();++i){
+			//augment "correct" action
+			y[i] = (i==action)?1:0.8*y[i];
+		}
+		net.BP(y);
+		//action = "correct" action
 	}
 };
 
