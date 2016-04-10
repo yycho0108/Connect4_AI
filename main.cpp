@@ -19,7 +19,7 @@ int main(int argc, char* argv[]){
 
 	Turn win[n];
 
-	int u_freq = 200; // update frequency
+	int u_freq = 20; // update frequency
 	for(int i=0;i<n;++i){
 		namedPrint(i);
 		board = Board();
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
 				//it works, since it's a zero-sum game.
 				
 				if(i%u_freq == 0)
-					ai.learn(400, alpha);
+					ai.learn(600, alpha); //300 = max of n_replay; 0.05 = learning rate
 					//# memories to replay, learning rate
 			}else{
 				//minimax _ai will play B

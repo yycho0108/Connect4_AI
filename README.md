@@ -41,7 +41,21 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 		- mSize : Agent Memory Size
 		- rSize : Agent Replay Size
 
+
 ### Results
+
+![minimax-neural-learn](images/minimax_neural_5.png)
+
+By actually taking into advantage greater memory and utilizing Experience Replay
+as a means to separate the temporal correlation between training sequences,
+I was able to achieve a much more impressive learning --
+an AI that actually outperforms the minimax AI.
+
+![minimax-neural-learn2](images/minimax_neural_6.png)
+
+I was also able to replicate the result several times.
+
+### Past Results
 
 ![minimax-neural](images/minimax_neural.png)
 
@@ -60,3 +74,5 @@ The Q-net agent performs slightly better than the random agent, but not by an im
 
 I also attempted (knowing that the chances of it working is scarce)
 to implement a **supervised** q-learning agent, which didn't work at all, as expected.
+
+
