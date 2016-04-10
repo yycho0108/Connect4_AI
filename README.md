@@ -17,11 +17,13 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 	- [ ] SARSA or pure Q-Learning?
 	- [ ] Experience Replay
 	- [ ] e-greedy agent
+	- [ ] Validation with *Tables* in place of Neural Networks
 	- [ ] Save/Load Agent
+	- [ ] Generalizing Agent to learn for any game, given formatted input and output
 
 ### Documentation
 
 - Parameters :
-	- (@ Agent.h) alpha : learning rate
-	- (@ Agent.h) epsilon : probability of random exploration
-	- (@ main.cpp) n-m : board size
+	- (@ [Agent.h](Agent.h)) alpha : learning rate
+	- (@ [Agent.h](Agent.h)) epsilon : probability of random exploration
+	- (@ [main.cpp](main.cpp)) n-m : board size
