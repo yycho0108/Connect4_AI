@@ -18,6 +18,7 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 		- Pure Q-Learning
 	- [x] Experience Replay
 	- [x] e-greedy agent
+	- [x] simple board evaluation heuristic
 	- [ ] Validation with *Tables* in place of Neural Networks
 	- [ ] Save/Load Agent
 	- [ ] Generalizing Agent to learn for any game, given formatted input and output
@@ -26,6 +27,8 @@ Prior to implementing Connect-4, I tried to apply simulating a Q-value function 
 	Either the agent should be exposed to interact with user input -- or some other form of AI to train against. Currently, it's essentially playing against itself.
 	- [x] Compete Against User
 	- [x] Implement Heuristic MiniMax Agent
+	- [x] Handle SIGINT to save midway results
+	- [x] Tracking the loss function
 
 ### Documentation
 

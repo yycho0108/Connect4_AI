@@ -2,30 +2,46 @@
 #include "Board.h"
 #include "Agent.h"
 #include <fstream>
+#include <signal.h>
+
+static volatile bool run = true;
+
+void stop(int){
+	run=false;
+}
 
 int main(int argc, char* argv[]){
+	signal(SIGINT,stop);
 
 	int n = 1;
 	if(argc != 1){
 		n = std::atoi(argv[1]);
+		// n = max_epoch
 	}
 
-	using Board = _Board<4,5>;
+	using Board = _Board<5,6>;
 	Board board;
 
-	Agent<4,5> ai(10000,0.99);//memory size, gamma
-	MiniMaxAgent<4,5> m_ai(5);
-	RandomAgent<4,5> r_ai;
+	Agent<5,6> ai(10000,0.8);//memory size, gamma
+	MiniMaxAgent<5,6> m_ai(5);
+	RandomAgent<5,6> r_ai;
 
 	Turn win[n];
 
-	int u_freq = 20; // update frequency
-	for(int i=0;i<n;++i){
-		namedPrint(i);
+	const int u_freq = 4; // update frequency
+	const int n_update = 32;
+
+	//ai.print();
+	int epoch;
+
+	std::ofstream ferr("loss.csv");
+
+	for(epoch=0;run && epoch<n;++epoch){
+		namedPrint(epoch);
 		board = Board();
 		do{
-			double eps = 1.0 - tanh(2*float(i)/n);
-			auto alpha = 1.0; //will use eps as alpha
+			double eps = 1.0 - tanh(2*float(epoch)/n);
+			auto alpha = 1.0; 
 			if(board.turn == A){
 				//neural ai will play A (first)
 				//connect-four is solved to be a win for the first player
@@ -37,8 +53,11 @@ int main(int argc, char* argv[]){
 				//negate the reward, since reward should correspond to the previous state's action.
 				//it works, since it's a zero-sum game.
 				
-				if(i%u_freq == 0)
-					ai.learn(600, alpha); //300 = max of n_replay; 0.05 = learning rate
+				if(epoch && epoch%u_freq == 0){
+					auto err = ai.learn(n_update, alpha); //300 = max of n_replay; 0.05 = learning rate
+					ferr << err << endl;
+					//std::cout << err << endl;
+				}
 					//# memories to replay, learning rate
 			}else{
 				//minimax _ai will play B
@@ -48,12 +67,16 @@ int main(int argc, char* argv[]){
 				board.step(a);
 			}
 		} while(!board.end());
-		win[i] = board._win;
+		win[epoch] = board._win;
 		board.print();
 	}
+	//ai.print();
+
+
+	std::cout << "SAVING ... " << std::endl;
 	std::ofstream f_win("win.csv");
-	for(auto& w : win){
-		f_win << (int)w << std::endl;
+	for(int i=0;i<epoch;++i){
+		f_win << (int)win[i] << std::endl;
 	}
 	f_win.flush();
 	f_win.close();

@@ -13,15 +13,23 @@ float split(){
 	return rand()/float(RAND_MAX);
 }
 
+constexpr long int ppow(int x, int n){ //positive power
+	return n<1?1:x*ppow(x,n-1);
+}
+
+constexpr long int log2(long int x){
+	return (x<2)?0:1+log2(x<<1);
+}
+
 template<int n, int m>
 struct _Memory{
 	using Board = _Board<n,m>;
 	char S[n][m];
 	int a;
-	int r;
+	double r; //reward
 	char S2[n][m];
 	bool open[m]; //avaiable actions
-	_Memory(Board& S, int a, int r, Board& S2):
+	_Memory(Board& S, int a, double r, Board& S2):
 		a(a),r(r){
 			memcpy(this->S, S.board(), sizeof(this->S));
 			memcpy(this->S2, S2.board(), sizeof(this->S2));
@@ -35,14 +43,15 @@ class Agent{
 	using Memory = _Memory<n,m>;
 
 	std::deque<Memory> memories;
-	Net<n*m, n*m*3, m> net; //input = board-space, output = q value for next actions
+	Net<n*m,(int)log2(ppow(10,n+m)), m> net;
+	//input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.1,0.001), mSize(mSize),gamma(gamma){ 
-			//alpha(learning rate), decay
+		:net(0.9,0.01, 0.0001), mSize(mSize),gamma(gamma){ 
+			//small rho, eps, decay
 			srand(time(0));
 	}
 
@@ -70,7 +79,7 @@ public:
 		//still max since I'm assuming rational choice henceforth
 	}
 
-	void learn(Memory& mem, double alpha){
+	double learn(Memory& mem, double alpha){
 		//learn 1
 		
 		//input = current state
@@ -88,14 +97,18 @@ public:
 		//namedPrint(y);
 		// ...
 		net.BP(y);
+		return net.error();
 	}
 
-	void learn(int n_replay, double alpha){
+	double learn(int n_replay, double alpha){
 		//learn n
 		auto s = memories.size();	
+		auto avg = 0.0;
 		for(int i=0;i<n_replay;++i){
-			learn(memories[s*split()], alpha);
+			auto err = learn(memories[s*split()], alpha);
+			avg += err;
 		}
+		return avg/n_replay;
 	}
 
 	int getRand(Board& board){
@@ -143,6 +156,9 @@ public:
 		}
 		net.BP(y);
 		//action = "correct" action
+	}
+	void print(){
+		net.print();
 	}
 };
 
