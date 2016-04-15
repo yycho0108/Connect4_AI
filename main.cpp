@@ -19,17 +19,17 @@ int main(int argc, char* argv[]){
 		// n = max_epoch
 	}
 
-	using Board = _Board<5,6>;
+	using Board = _Board<4,5>;
 	Board board;
 
-	Agent<5,6> ai(10000,0.8);//memory size, gamma
-	MiniMaxAgent<5,6> m_ai(5);
-	RandomAgent<5,6> r_ai;
+	Agent<4,5> ai(1000,0.9);//memory size, gamma
+	MiniMaxAgent<4,5> m_ai(5);
+	RandomAgent<4,5> r_ai;
 
 	Turn win[n];
 
-	const int u_freq = 4; // update frequency
-	const int n_update = 32;
+	const int u_freq = 20; // update frequency
+	const int n_update = 400;
 
 	//ai.print();
 	int epoch;
@@ -41,14 +41,14 @@ int main(int argc, char* argv[]){
 		board = Board();
 		do{
 			double eps = 1.0 - tanh(2*float(epoch)/n);
-			auto alpha = 1.0; 
+			auto alpha = 0.7;
+			int a;
+			auto prev = board;//copy to prev
 			if(board.turn == A){
 				//neural ai will play A (first)
 				//connect-four is solved to be a win for the first player
-				auto a = ai.getNext(board,eps);
-				auto prev = board; //copy to prev
+				a = ai.getNext(board,eps);
 				board.step(a);	
-				ai.memorize(prev,a,-board.reward(),board);
 				//raw reward is the reward for the "next" player.
 				//negate the reward, since reward should correspond to the previous state's action.
 				//it works, since it's a zero-sum game.
@@ -63,10 +63,13 @@ int main(int argc, char* argv[]){
 				//minimax _ai will play B
 				//or random ai will play B
 				//auto a = r_ai.getBest(board);
-				auto a = m_ai.getBest(board);
+				a = m_ai.getBest(board);
 				board.step(a);
 			}
+			ai.memorize(prev,a,-board.reward(),board);//hopefully this would make it learn
 		} while(!board.end());
+		// if B Wins A can't learn anything (because it's over on B's turn and a new game starts)
+
 		win[epoch] = board._win;
 		board.print();
 	}

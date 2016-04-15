@@ -63,20 +63,21 @@ struct _Board{
 		if(_win == turn)//this would actually never happen.
 			_reward = 1; //this is MY reward.
 		else if (_win == X){
-			_reward = 0; //draw
-			//board-evaluation heuristic?
-			for(int i=0;i<n;++i){
-				for(int j=0;j<m;++j){
-					if(_board[i][j] == turn){ //mine
-						_reward += (n+m)/2 - (abs(i - n/2) + abs(j - m/2));
-					}else if (_board[i][j] != X){ //opponent
-						_reward -= (n+m)/2 - (abs(i - n/2) + abs(j - m/2));
-					}
-				}
-			}
-
-			//volume of pyramid = x*y*z/3
-			_reward /= (n*m*((n+m)/4+1) /3) / 2; //volume of pyramid
+			_reward = -0.1; //draw
+			//but let's give a reward for holding on longer.
+//			//board-evaluation heuristic?
+//			for(int i=0;i<n;++i){
+//				for(int j=0;j<m;++j){
+//					if(_board[i][j] == turn){ //mine
+//						_reward += (n+m)/2 - (abs(i - n/2) + abs(j - m/2));
+//					}else if (_board[i][j] != X){ //opponent
+//						_reward -= (n+m)/2 - (abs(i - n/2) + abs(j - m/2));
+//					}
+//				}
+//			}
+//
+//			//volume of pyramid = x*y*z/3
+//			_reward /= (n*m*((n+m)/4+1) /3) / 2; //volume of pyramid
 			//divide by 2 since I can't have all grid
 			//namedPrint(_reward);
 		}
@@ -147,7 +148,7 @@ struct _Board{
 			--cnt;
 			//counts the middle part twice
 			
-			if(cnt >= 4){ //connect-3 game right now
+			if(cnt >= 3){ //connect-3 game right now
 				_win = turn;
 				return;
 			}

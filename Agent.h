@@ -50,7 +50,7 @@ class Agent{
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.9,0.01, 0.0001), mSize(mSize),gamma(gamma){ 
+		:net(0.7,0.0001, 0.0001), mSize(mSize),gamma(gamma){ 
 			//small rho, eps, decay
 			srand(time(0));
 	}
@@ -104,11 +104,14 @@ public:
 		//learn n
 		auto s = memories.size();	
 		auto avg = 0.0;
+		auto maxErr = 0.0;
 		for(int i=0;i<n_replay;++i){
 			auto err = learn(memories[s*split()], alpha);
 			avg += err;
+			maxErr = maxErr>err?maxErr:err;
 		}
-		return avg/n_replay;
+		return maxErr;
+		//return avg/n_replay;
 	}
 
 	int getRand(Board& board){
@@ -137,6 +140,13 @@ public:
 				maxAct = a;
 			}
 		}
+
+//		std::cout << '[';
+//		for(auto& e : y){
+//			std::cout << e << ',';
+//		}
+//		std::cout << ']' << std::endl;
+
 		return maxAct;
 	}
 	int getNext(Board& board, double eps){
@@ -149,7 +159,7 @@ public:
 	void s_learn(Board& board, int action){// supervised learning
 		auto x = std::vector<double>(board.board(), board.board()+n*m);
 		auto y = net.FF(x);
-		namedPrint(y);
+		//namedPrint(y);
 		for(int i=0;i<y.size();++i){
 			//augment "correct" action
 			y[i] = (i==action)?1:0.8*y[i];
