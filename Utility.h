@@ -16,11 +16,13 @@ std::ostream& operator<<(std::ostream& o, std::vector<T> v){
 		o << e << ", ";
 	}
 	o << ']';
-	o << std::endl;
+	return o << std::endl;
 }
 
 extern void hline();
 extern void checkPoint(std::string s="");
+extern double split();
+
 
 #define namedPrint(x) \
 	std::cout << #x << " : " << x << std::endl;

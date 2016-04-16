@@ -11,6 +11,10 @@
 enum Turn:char{A=-1,X,B}; //X = 0 = empty
 char cTurn[3] ={'A','X','B'};
 
+std::ostream& operator<<(std::ostream& o, const Turn& t){
+	return o << cTurn[(int)t + 1];
+}
+
 template<int n, int m>
 struct _Board{
 	Turn turn;
@@ -63,7 +67,7 @@ struct _Board{
 		if(_win == turn)//this would actually never happen.
 			_reward = 1; //this is MY reward.
 		else if (_win == X){
-			_reward = -0.1; //draw
+			_reward = 0.0; //draw
 			//but let's give a reward for holding on longer.
 //			//board-evaluation heuristic?
 //			for(int i=0;i<n;++i){
@@ -112,6 +116,10 @@ struct _Board{
 				}
 			}
 		}
+		if(_end){
+			//no next move
+			memset(_open,0,sizeof(_open));
+		}
 	}
 	bool inbound(int i, int j){
 		return 0<=i && i<n && 0<=j && j<m;
@@ -148,7 +156,7 @@ struct _Board{
 			--cnt;
 			//counts the middle part twice
 			
-			if(cnt >= 3){ //connect-3 game right now
+			if(cnt >= 4){ //connect-3 game right now
 				_win = turn;
 				return;
 			}

@@ -9,16 +9,19 @@
 
 //minimax Q-Learning
 //possibly SARSA
-float split(){
-	return rand()/float(RAND_MAX);
-}
+//float split(){
+//	static std::mt19937 gen(123);
+//	static std::uniform_real_distribution<double> dis(0.0, 1.0);
+//	return dis(gen);
+//	//return rand()/float(RAND_MAX);
+//}
 
-constexpr long int ppow(int x, int n){ //positive power
+constexpr long long int ppow(long long int x, int n){ //positive power
 	return n<1?1:x*ppow(x,n-1);
 }
 
-constexpr long int log2(long int x){
-	return (x<2)?0:1+log2(x<<1);
+constexpr long long int log2(long long int x){
+	return (x<2)?0:1+log2(x>>1);
 }
 
 template<int n, int m>
@@ -34,24 +37,28 @@ struct _Memory{
 			memcpy(this->S, S.board(), sizeof(this->S));
 			memcpy(this->S2, S2.board(), sizeof(this->S2));
 			memcpy(this->open, S2.open(), sizeof(this->open));
+			
 	}
 };
+
 
 template<int n, int m>
 class Agent{
 	using Board = _Board<n,m>;
 	using Memory = _Memory<n,m>;
+	const static int H = 1.5*n*m;
 
 	std::deque<Memory> memories;
-	Net<n*m,(int)log2(ppow(10,n+m)), m> net;
+	Net<n*m,H, m> net;
 	//input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.7,0.0001, 0.0001), mSize(mSize),gamma(gamma){ 
-			//small rho, eps, decay
+		:net(0.85,0.0001, 0.0001), mSize(mSize),gamma(gamma){ 
+			//rho, eps, decay
+			std::cout << "# HIDDEN NEURONS : " << H << std::endl;
 			srand(time(0));
 	}
 
@@ -87,16 +94,29 @@ public:
 
 		auto y = net.FF(x);
 		//namedPrint(y);
+
 		//auto y = table.FF(x);
 		auto a = mem.a;
 		auto r = mem.r;
-		auto maxqn = max((char*)mem.S2, mem.open);
+		double maxqn;
+		//namedPrint(r);
 
+		maxqn = max((char*)mem.S2, mem.open);
+
+//		namedPrint(r);
+//		namedPrint(maxqn);
+//
 		y[a] = (1-alpha)*y[a] + alpha*(r+gamma*maxqn);
 
-		//namedPrint(y);
-		// ...
+//		cout << " : " << endl;
+//		namedPrint(newy);
+
 		net.BP(y);
+
+//		y = net.FF(x);
+//		cout << "--> " << endl;
+//		namedPrint(y);
+
 		return net.error();
 	}
 
