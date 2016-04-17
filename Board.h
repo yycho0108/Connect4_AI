@@ -156,7 +156,7 @@ struct _Board{
 			--cnt;
 			//counts the middle part twice
 			
-			if(cnt >= 3){ //connect-3 game right now
+			if(cnt >= 4){ //connect-3 game right now
 				_win = turn;
 				return;
 			}

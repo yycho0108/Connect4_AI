@@ -65,13 +65,13 @@ public:
 	template<typename H1, typename H2>
 	void init(H1 h1, H2 h2){
 		int i = n-2; //sizeof...(t) = 0
-		W[i].randu(h2,h1);
+		W[i].randn(h2,h1);
 		egW[i].zeros(h2,h1); // set to 0
 		edW[i].zeros(h2,h1); // set to 0
 
 		//g[i].ones(h2,h1); // gain = 1
 
-		B[i].randu(h2);
+		B[i].randn(h2);
 		egB[i].zeros(h2);
 		edB[i].zeros(h2);
 //		dB[i].zeros(h2);
@@ -82,14 +82,14 @@ public:
 	template<typename H1, typename H2, typename... T>
 	void init(H1 h1, H2 h2, T... t){
 		int i = n - (2 + sizeof...(t));
-		W[i].randu(h2,h1);
+		W[i].randn(h2,h1);
 		egW[i].zeros(h2,h1); // set to 0
 		edW[i].zeros(h2,h1); // set to 0
-//		dW[i].randu(h2,h1);
+//		dW[i].randn(h2,h1);
 
 		//g[i].ones(h2,h1);
 
-		B[i].randu(h2);
+		B[i].randn(h2);
 		egB[i].zeros(h2);
 		edB[i].zeros(h2);
 //		dB[i].zeros(h2);
@@ -108,6 +108,7 @@ public:
 	void BP(std::vector<double> Y){
 		//L[n-1].G() = vec(Y) - L[n-1].O();
 		L[n-1].G() = vec(Y) - L[n-1].O();
+		//namedPrint(L[n-1].G().t());
 
 		loss = 0.5 * arma::dot(L[n-1].G(), L[n-1].G());
 
@@ -122,7 +123,7 @@ public:
 			mat scaler = rms(edW[i-1],eps)/rms(egW[i-1],eps);
 			mat dW = rms(edW[i-1],eps)/rms(egW[i-1],eps) % gW;
 
-			W[i-1] += dW - decay*W[i-1];//weight decay
+			W[i-1] += 0.2*gW - decay*W[i-1];//weight decay
 			//-dW may be different sign
 			edW[i-1] = lerp(edW[i-1],dW%dW,rho);
 
@@ -131,7 +132,7 @@ public:
 			egB[i-1] = lerp(egB[i-1], gB%gB, rho);
 			vec dB = rms(edB[i-1],eps)/rms(egB[i-1],eps)%gB;
 			
-			B[i-1] += dB - decay*B[i-1];
+			B[i-1] += 0.2*gB - decay*B[i-1];
 			edB[i-1] = lerp(edB[i-1],dB%dB,rho);
 
 		}

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <signal.h>
 
-#define DIMS 3,3
+#define DIMS 5,5
 //dimension of the board
 //
 static volatile bool run = true;
@@ -53,7 +53,7 @@ void train(Agent<DIMS>& ai, int n){
 	const int learn_start = 1;
 
 	std::ofstream ferr("loss.csv");
-	int* win = new int[n];
+	std::ofstream ftrain("train.csv");
 
 	for(epoch=0;run && epoch<n;++epoch){
 		namedPrint(epoch);
@@ -61,7 +61,7 @@ void train(Agent<DIMS>& ai, int n){
 
 		double eps = 1.0 - tanh(2*float(epoch)/n); //gradual annealing
 		//double eps = 1.0 - ((1.0-0.0)*epoch)/n; //linear annealing
-		auto alpha = 0.7;
+		auto alpha = 0.001;
 		auto AITURN = (split()<0.5)?A:B;
 		do{
 			int a;
@@ -105,28 +105,20 @@ void train(Agent<DIMS>& ai, int n){
 
 		} while(!board.end());
 
-			if(board._win == X){ //=draw
-				win[epoch] = 0;
-			}else if (board._win == AITURN){
-				win[epoch] = 1;
-			}else{
-				win[epoch] = -1;
-		// if B Wins A can't learn anything (because it's over on B's turn and a new game starts)
-//testing AI purposes 
+		int win;
+
+		if(board._win == X){ //=draw
+			win = 0;
+		}else if (board._win == AITURN){
+			win = 1;
+		}else{
+			win = -1;
 		}
-//		board.print();
+		ftrain << win << std::endl;
 	}
 
-
-	std::cout << "SAVING ... " << std::endl;
-	std::ofstream ftrain("train.csv");
-	for(int i=0;i<epoch;++i){
-		ftrain << win[i] << std::endl;
-	}
 	ftrain.flush();
 	ftrain.close();
-
-	delete[] win;
 }
 
 void test(Agent<DIMS>& ai, int n){
@@ -135,9 +127,9 @@ void test(Agent<DIMS>& ai, int n){
 	Board board;
 	MiniMaxAgent<DIMS> m_ai(5);
 
-	int* win = new int[n];
 
 	int epoch;
+	std::ofstream ftest("test.csv");
 
 	for(epoch=0;run && epoch<n;++epoch){//10 games
 		board = Board();
@@ -156,24 +148,21 @@ void test(Agent<DIMS>& ai, int n){
 			}
 		}while(!board.end());
 
+		int win;
+
 		if(board._win == X){ //=draw
-			win[epoch] = 0;
+			win = 0;
 		}else if (board._win == AITURN){
-			win[epoch] = 1;
+			win = 1;
 		}else{
-			win[epoch] = -1;
+			win = -1;
 		}
+		ftest << win << std::endl;
 	}
 
-	std::cout << "SAVING ... " << std::endl;
-	std::ofstream ftest("test.csv");
-	for(int i=0;i<epoch;++i){
-		ftest<< (int)win[i] << std::endl;
-	}
 	ftest.flush();
 	ftest.close();
 
-	delete[] win;
 }
 
 int main(int argc, char* argv[]){
@@ -194,7 +183,7 @@ int main(int argc, char* argv[]){
 
 	train(ai,n);
 
-	//test(ai,1000); //test for 1000 games
+	test(ai,1000); //test for 1000 games
 
 	//memory size = 1
 

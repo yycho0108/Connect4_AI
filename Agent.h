@@ -22,6 +22,7 @@ constexpr long long int log2(long long int x){
 template<int n, int m>
 struct _Memory{
 	using Board = _Board<n,m>;
+	Turn turn;
 	char S[n][m];
 	int a;
 	double r; //reward
@@ -29,6 +30,7 @@ struct _Memory{
 	bool open[m]; //avaiable actions
 	_Memory(Board& S, int a, double r, Board& S2):
 		a(a),r(r){
+			turn = S.turn;
 			memcpy(this->S, S.board(), sizeof(this->S));
 			memcpy(this->S2, S2.board(), sizeof(this->S2));
 			memcpy(this->open, S2.open(), sizeof(this->open));
@@ -41,17 +43,17 @@ template<int n, int m>
 class Agent{
 	using Board = _Board<n,m>;
 	using Memory = _Memory<n,m>;
-	const static int H = 3*n*m;
+	const static int H = 1.5*n*m;
 
 	std::deque<Memory> memories;
-	Net<n*m,H, m> net;
+	Net<n*m+1,H, m> net;
 	//input = board-space, output = q value for next actions
 	int mSize; //memory size
 	double gamma;
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.3,0.000000001, 0.0), mSize(mSize),gamma(gamma){ 
+		:net(0.0,0.00001, 0.0), mSize(mSize),gamma(gamma){ 
 			//rho, eps, decay
 			std::cout << "# HIDDEN NEURONS : " << H << std::endl;
 			srand(time(0));
@@ -64,8 +66,10 @@ public:
 		}
 	}
 
-	double max(char* next, bool* open){
-		auto x = std::vector<double>(next, next+n*m);
+	double max(Memory& mem, bool* open){
+		auto x = std::vector<double>((char*)mem.S2, (char*)mem.S2+n*m);
+		x.push_back(mem.turn == A? B:A);//flip since  mem.turn == S.turn
+
 		auto y = net.FF(x);	// list of q values for actions taken @ state 'next'
 		//auto y = table.FF(x);
 		double maxVal = -99999;
@@ -90,43 +94,44 @@ public:
 		//learn 1
 		
 		//input = current state
-		hline();
+		//hline();
 		auto x = std::vector<double>((char*)mem.S, (char*)mem.S+n*m);
+		x.push_back(mem.turn);
 
 		//this must come before, since the net BP uses the last output from the net
 		double maxqn = 0.0;
 		//namedPrint(r);
 		
-		maxqn = max((char*)mem.S2, mem.open);
-		auto y = net.FF(x);
+		maxqn = max(mem, mem.open);
 		//namedPrint(y);
 
 		//auto y = table.FF(x);
 		auto a = mem.a;
 		auto r = mem.r;
 
-		for(int i=0;i<3;++i){
-			for(int j=0;j<3;++j){
-				cout << (Turn)x[i*3+j];
-			}
-			cout << endl;
-		}
-		namedPrint(a);
+//		for(int i=0;i<3;++i){
+//			for(int j=0;j<3;++j){
+//				cout << (Turn)x[i*3+j];
+//			}
+//			cout << endl;
+//		}
+		//namedPrint(a);
 
-		namedPrint(r);
-		namedPrint(maxqn);
-		namedPrint(y);
+		//namedPrint(r);
+		//namedPrint(maxqn);
+		auto y = net.FF(x);
+		//namedPrint(y);
 
 		y[a] = (1-alpha)*y[a] + alpha*(r+gamma*maxqn);
 
-		cout << " : " << endl;
-		namedPrint(y);
+		//cout << " : " << endl;
+		//namedPrint(y);
 
 		net.BP(y);
 
-		y = net.FF(x);
-		cout << "--> " << endl;
-		namedPrint(y);
+		//y = net.FF(x);
+		//cout << "--> " << endl;
+		//namedPrint(y);
 
 		return net.error();
 	}
@@ -157,6 +162,7 @@ public:
 	}
 	int getBest(Board& board){
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
+		x.push_back(board.turn);
 		//namedPrint(x);
 		auto y = net.FF(x);
 		//namedPrint(y);
@@ -185,10 +191,12 @@ public:
 	}
 	std::vector<double> guess(Board& board){
 		auto x = std::vector<double>(board.board(),board.board()+n*m);
+		x.push_back(board.turn);
 		return net.FF(x);
 	}
 	void s_learn(Board& board, int action){// supervised learning
 		auto x = std::vector<double>(board.board(), board.board()+n*m);
+		x.push_back(board.turn);
 		auto y = net.FF(x);
 		//namedPrint(y);
 		for(int i=0;i<y.size();++i){
