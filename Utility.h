@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& o, std::vector<T> v){
 		o << e << ", ";
 	}
 	o << ']';
-	return o << std::endl;
+	return o;
 }
 
 extern void hline();

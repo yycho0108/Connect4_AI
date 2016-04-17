@@ -9,12 +9,7 @@
 
 //minimax Q-Learning
 //possibly SARSA
-//float split(){
-//	static std::mt19937 gen(123);
-//	static std::uniform_real_distribution<double> dis(0.0, 1.0);
-//	return dis(gen);
-//	//return rand()/float(RAND_MAX);
-//}
+
 
 constexpr long long int ppow(long long int x, int n){ //positive power
 	return n<1?1:x*ppow(x,n-1);
@@ -46,7 +41,7 @@ template<int n, int m>
 class Agent{
 	using Board = _Board<n,m>;
 	using Memory = _Memory<n,m>;
-	const static int H = 1.5*n*m;
+	const static int H = 3*n*m;
 
 	std::deque<Memory> memories;
 	Net<n*m,H, m> net;
@@ -56,7 +51,7 @@ class Agent{
 
 public:
 	Agent(int mSize=1, double gamma=0.8)
-		:net(0.85,0.0001, 0.0001), mSize(mSize),gamma(gamma){ 
+		:net(0.3,0.000000001, 0.0), mSize(mSize),gamma(gamma){ 
 			//rho, eps, decay
 			std::cout << "# HIDDEN NEURONS : " << H << std::endl;
 			srand(time(0));
@@ -73,14 +68,19 @@ public:
 		auto x = std::vector<double>(next, next+n*m);
 		auto y = net.FF(x);	// list of q values for actions taken @ state 'next'
 		//auto y = table.FF(x);
-		double maxVal = 0.0;
+		double maxVal = -99999;
+		bool end = true;
 
 		for(int a=0; a<m; ++a){
 			//iterate over all possible actions
 			if(open[a]){ //can perform action
+				end=false;
 				maxVal = maxVal>y[a]?maxVal:y[a];
 			}
 		}
+
+		if(end)
+			maxVal = 0.0;
 
 		return -maxVal; //negate since it's max for opponent
 		//still max since I'm assuming rational choice henceforth
@@ -90,32 +90,43 @@ public:
 		//learn 1
 		
 		//input = current state
+		hline();
 		auto x = std::vector<double>((char*)mem.S, (char*)mem.S+n*m);
 
+		//this must come before, since the net BP uses the last output from the net
+		double maxqn = 0.0;
+		//namedPrint(r);
+		
+		maxqn = max((char*)mem.S2, mem.open);
 		auto y = net.FF(x);
 		//namedPrint(y);
 
 		//auto y = table.FF(x);
 		auto a = mem.a;
 		auto r = mem.r;
-		double maxqn;
-		//namedPrint(r);
 
-		maxqn = max((char*)mem.S2, mem.open);
+		for(int i=0;i<3;++i){
+			for(int j=0;j<3;++j){
+				cout << (Turn)x[i*3+j];
+			}
+			cout << endl;
+		}
+		namedPrint(a);
 
-//		namedPrint(r);
-//		namedPrint(maxqn);
-//
+		namedPrint(r);
+		namedPrint(maxqn);
+		namedPrint(y);
+
 		y[a] = (1-alpha)*y[a] + alpha*(r+gamma*maxqn);
 
-//		cout << " : " << endl;
-//		namedPrint(newy);
+		cout << " : " << endl;
+		namedPrint(y);
 
 		net.BP(y);
 
-//		y = net.FF(x);
-//		cout << "--> " << endl;
-//		namedPrint(y);
+		y = net.FF(x);
+		cout << "--> " << endl;
+		namedPrint(y);
 
 		return net.error();
 	}

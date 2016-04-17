@@ -34,7 +34,8 @@ vec lerp(vec& a, vec b, double d){
 void XOR_GEN(std::vector<double>& X, std::vector<double>& Y){
 	X[0] = randNum()>0.5?1:0;
 	X[1] = randNum()>0.5?1:0;
-	Y[0] = int(X[0]) ^ int(X[1]);
+	Y[0] = Y[1] = 0;
+	Y[int(X[0]) ^ int(X[1])] = 1;//encoding
 }
 
 template<int... Args>
