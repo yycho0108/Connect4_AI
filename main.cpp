@@ -4,13 +4,19 @@
 #include <fstream>
 #include <signal.h>
 
-#define DIMS 5,5
+#define DIMS 6,7
+
+
 //dimension of the board
 //
 static volatile bool run = true;
 
 void stop(int){
 	run=false;
+}
+void viewNet(Agent<DIMS>& ai){
+	ai.load("net.sav");
+	ai.print();
 }
 
 void testNet(int argc, char* argv[]){
@@ -43,6 +49,7 @@ void testNet(int argc, char* argv[]){
 void train(Agent<DIMS>& ai, int n){
 	run = true;
 	MiniMaxAgent<DIMS> m_ai(5);
+	RandomAgent<DIMS> r_ai;
 	using Board = _Board<DIMS>;
 	int epoch;
 	Board board;
@@ -50,19 +57,24 @@ void train(Agent<DIMS>& ai, int n){
 
 	const int u_freq = 1;
 	const int n_update = 1;
-	const int learn_start = 1;
+	const int learn_start = 1; // no ER, to see direct results
 
 	std::ofstream ferr("loss.csv");
 	std::ofstream ftrain("train.csv");
 
 	for(epoch=0;run && epoch<n;++epoch){
+
 		namedPrint(epoch);
 		board = Board();
+		board.step(r_ai.getBest(board));
 
 		double eps = 1.0 - tanh(2*float(epoch)/n); //gradual annealing
 		//double eps = 1.0 - ((1.0-0.0)*epoch)/n; //linear annealing
-		auto alpha = 0.001;
-		auto AITURN = (split()<0.5)?A:B;
+		//alpha annealing
+		auto alpha = 0.4 * eps; // > 1.0/n? 0.001 : 1.0/n;
+
+		auto AITURN = (split()<0.5)?A:B; //random turn
+
 		do{
 			int a;
 			auto prev = board;//copy to prev
@@ -97,7 +109,9 @@ void train(Agent<DIMS>& ai, int n){
 //				std::cout << "NOW  : " << std::endl;
 //				board.print();
 //				namedPrint(board.reward());
-				auto err = ai.learn(n_update, alpha); //300 = max of n_replay; 0.05 = learning rate
+				double err;
+				err = ai.learn(n_update, alpha);
+
 				ferr << err << endl;
 				//std::cout << err << endl;
 			}
@@ -119,20 +133,35 @@ void train(Agent<DIMS>& ai, int n){
 
 	ftrain.flush();
 	ftrain.close();
+
+	ai.save("net.sav");
+
 }
 
 void test(Agent<DIMS>& ai, int n){
+
 	run = true;
 	using Board = _Board<DIMS>;
 	Board board;
 	MiniMaxAgent<DIMS> m_ai(5);
+	RandomAgent<DIMS> r_ai;
 
 
 	int epoch;
 	std::ofstream ftest("test.csv");
 
 	for(epoch=0;run && epoch<n;++epoch){//10 games
+
+
 		board = Board();
+
+		//randomly initialize board
+		int lim = 5 * split();
+		for(int i=0;i<lim;++i){
+			board.step(r_ai.getBest(board));
+		}
+
+		//now test...
 		auto AITURN = (split()<0.5)?A:B;
 		namedPrint(AITURN);
 		do{
@@ -179,7 +208,8 @@ int main(int argc, char* argv[]){
 	using Board = _Board<DIMS>;
 	Board board;
 
-	Agent<DIMS> ai(1,0.7);//memory size, gamma
+	Agent<DIMS> ai(1,0.95);//memory size, gamma
+	//viewNet(ai);
 
 	train(ai,n);
 
